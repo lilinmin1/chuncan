@@ -115,9 +115,9 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
   </div>
 
   <ul class="legend">
-    <li><b>桑叶</b> 长一节，越吃越快</li>
+    <li><b>桑叶</b> 长一节，越长爬得越快</li>
     <li><b>露水</b> 减速 5 秒</li>
-    <li><b>石子</b> 每吃 5 片多一颗</li>
+    <li><b>石子</b> 越往后冒得越多</li>
     <li><b>每 8 片</b> 蜕皮一次，升一龄</li>
   </ul>
   <p class="hint keys">方向键 / WASD 移动 · 空格暂停 · 回车开始</p>
@@ -169,7 +169,8 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
   }
 
   function interval(now) {
-    return Math.max(130, 240 - score * 2.5) + (now < slowUntil ? 100 : 0);
+    // 300ms per step at the start, 100ms at 40 leaves
+    return Math.max(100, 300 - score * 5) + (now < slowUntil ? 100 : 0);
   }
 
   function step(now) {
@@ -185,7 +186,9 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
       score++; pulse = now; leaf = null;
       if (score >= GOAL) return end(now, true);
       leaf = spawnFree(2);
-      if (score % 5 === 0) { const s = spawnFree(5); if (s) stones.push(s); }
+      // stones pile up faster as the game goes on: 4 at 10 leaves, 12 at 20, 21 at 30, 32 at 39
+      const target = Math.round(score / 3 + score * score / 80);
+      while (stones.length < target) { const s = spawnFree(5); if (!s) break; stones.push(s); }
       if (!dew && Math.random() < 0.22) { const d = spawnFree(3); if (d) dew = { ...d, ttl: 45 }; }
     } else {
       snake.pop();
